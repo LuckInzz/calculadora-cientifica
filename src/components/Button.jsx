@@ -7,11 +7,11 @@ function Button ({value, type, onClick}) {
 
         switch(type){
             case 'black-buttons':
-                return 'bg-gray-600 border-gray-700 h-7 mb-2 mt-2 text-xs'
+                return 'bg-gray-600 border-gray-700 h-7 w-10 md:w-14 mb-2 mt-2 text-[10px] md:text-[13px]'
             case 'green-buttons':
-                return 'bg-lime-500 border-lime-600 h-10 mb-2 text-base'
+                return 'bg-lime-500 border-lime-600 h-10 mb-2 text-[13px] md:text-[16px]'
             case 'gray-buttons':
-                return 'bg-gray-400 border-gray-500 h-10 mb-2 text-base'
+                return 'bg-gray-400 border-gray-500 h-10 mb-2 text-[13px] md:text-[16px]'
         }
     }
 
