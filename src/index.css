@@ -26,3 +26,13 @@ body {
   min-width: 320px;
   min-height: 100vh;
 }
+
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+.blink-caret {
+  animation: blink 1s step-start infinite;
+}

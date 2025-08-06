@@ -1,92 +1,168 @@
-import { use, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import './App.css'
 import Button from './components/Button'
 import Display from './components/Display'
 
-import { create, all, re } from 'mathjs';
+import { create, all } from 'mathjs';
 const math = create(all);
 
 function App() {
   const [expression, setExpression] = useState('')
   const [result, setResult] = useState('')
   const [ans, setAns] = useState ('')
+  const [caretPos, setCaretPos] = useState(expression.length)
+  const [eqHistory, setEqHistory] = useState([])
+  const historyRef = useRef(null) 
 
+  useEffect(() =>{ 
+    if(caretPos > expression.length){
+      setCaretPos(expression.length)
+    }
+  }, [expression, caretPos])
+
+  useEffect (() => {
+    if(historyRef.current) {
+      historyRef.current.scrollDown = historyRef.current.scrollHeight
+    }
+  }, [eqHistory])
+
+  useEffect(() => {
+    function handleKeyDown(e) {
+      if (e.key === "ArrowLeft") {
+        setCaretPos((pos) => Math.max(0, pos - 1));
+      } else if (e.key === "ArrowRight") {
+        setCaretPos((pos) => Math.min(expression.length, pos + 1));
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [expression]);
 
   const handleButtonClick = (value) => {
     switch(value) {
       case '=':
         try {
-          const calcResult = math.evaluate(expression)
-          setResult(String(calcResult))
-          setAns(String(calcResult))
+          if (expression !== ''){
+            const calcResult = math.evaluate(expression)
+            setResult(String(calcResult))
+            setAns(String(calcResult))
+            const eq = expression + ' = ' + calcResult
+            setEqHistory([eq, ...eqHistory])
+          }
         } catch (error) {
-          setResult("Syntax ERROR\n[AC] : Cancel")
+          setResult("Syntax ERROR [AC] : Cancel")
         }
         break
 
       case 'AC':
         setExpression('')
         setResult('')
+        setCaretPos('1')
         break
 
       case 'Ans':
         setExpression(ans)
+        setCaretPos(ans.length)
+        break
+      
+      case 'DEL':
+        setExpression((prev) => prev.slice(0, caretPos - 1) + prev.slice(caretPos))
+        setCaretPos(pos => Math.max(0, pos - 1))
         break
 
-      case 'x':
-        if (result !== ''){
-          setExpression(result + '*')
-          setResult('')
-        }
-        else
-          setExpression((prev) => prev + '*')
+      case '×':
+        setExpression((prev) => prev.slice(0, caretPos) + '*' + prev.slice(caretPos))
+        setCaretPos(pos => pos + 1)
         break
 
       case '÷':
-        if (result !== ''){
-          setExpression(result + '/')
-          setResult('')
-        }
+        setExpression((prev) => prev.slice(0, caretPos) + '/' + prev.slice(caretPos))
+        setCaretPos(pos => pos + 1)
+        break
+      
+      case 'x²':
+        setExpression((prev) => prev.slice(0, caretPos) + '^2' + prev.slice(caretPos))
+        if (expression.length >= 1)
+          setCaretPos(pos => pos + 2)
         else
-          setExpression((prev) => prev + '/')
+          setCaretPos(pos => pos - 2)
+        break
+      
+      case 'x³':
+        setExpression((prev) => prev.slice(0, caretPos) + '^3' + prev.slice(caretPos))
+        if (expression.length >= 1)
+          setCaretPos(pos => pos + 2)
+        else
+          setCaretPos(pos => pos - 2)
         break
 
-      case '+':
-        if (result !== ''){
-          setExpression(result + '+')
-          setResult('')
-        }
+      case 'x⁻¹':
+        setExpression((prev) => prev.slice(0, caretPos) + '^-1' + prev.slice(caretPos))
+        if (expression.length >= 1)
+          setCaretPos(pos => pos + 3)
         else
-          setExpression((prev) => prev + '+')
+          setCaretPos(pos => pos - 3)
         break
 
-      case '-':
-        if (result !== ''){
-          setExpression(result + '-')
-          setResult('')
-        }
+      case 'x?':
+        setExpression((prev) => prev.slice(0, caretPos) + '^' + prev.slice(caretPos))
+        if (expression.length >= 1)
+          setCaretPos(pos => pos + 1)
         else
-          setExpression((prev) => prev + '-')
+          setCaretPos(pos => pos - 1)
+        break
+      
+      case '√■':
+        setExpression((prev) => prev.slice(0, caretPos) + 'sqrt()' + prev.slice(caretPos))
+        setCaretPos(pos => pos + 5)
+        break
+
+      case 'ln':
+        setExpression((prev) => prev.slice(0, caretPos) + 'log()' + prev.slice(caretPos))
+        setCaretPos(pos => pos + 4)
+        break
+      
+      case 'log■▯':
+        setExpression((prev) => prev.slice(0, caretPos) + 'log(,)' + prev.slice(caretPos))
+        setCaretPos(pos => pos + 4)
+        break
+
+      case 'log':
+        setExpression((prev) => prev.slice(0, caretPos) + 'log10()' + prev.slice(caretPos))
+        setCaretPos(pos => pos + 6)
+        break
+      
+      case 'sin':
+        setExpression((prev) => prev.slice(0, caretPos) + 'sin()' + prev.slice(caretPos))
+        setCaretPos(pos => pos + 4)
+        break
+      
+      case 'cos':
+        setExpression((prev) => prev.slice(0, caretPos) + 'cos()' + prev.slice(caretPos))
+        setCaretPos(pos => pos + 4)
+        break
+      
+      case 'tan':
+        setExpression((prev) => prev.slice(0, caretPos) + 'tan()' + prev.slice(caretPos))
+        setCaretPos(pos => pos + 4)
         break
 
       default:
-        if (result !== ''){
-          setResult('')
-          setExpression('')
-        }
-        setExpression((prev) => prev + value)
+        setExpression((prev) => prev.slice(0, caretPos) + value + prev.slice(caretPos))
+        setCaretPos(pos => pos + 1)
         break
     }
   }
 
   return (
-    <main className='min-h-screen flex flex-col items-center p-4 sm:p-8'>
-      <h1 className='text-3xl mb-15'>Calculadora Científica</h1>
+    <main className='min-h-screen p-4 sm:p-8'>
+      <h1 className='text-3xl mb-15'>Scientific Calculator</h1>
       <div className='container flex flex-col md:flex-row gap-5 md:gap-10'>
-        <div className='calculator bg-gray-600 border-b-4 border-b-gray-700 p-4 
+        <div className='calculator bg-gray-600 border-b-4 border-r-4 border-b-gray-700 border-r-gray-700 p-4 
                         rounded-2xl shadow-[-4px_-4px_8px_rgba(0,0,0,0.6)]'>
 
-          <Display exp={expression} result={result}/>
+          <Display exp={expression} result={result} caretPos={caretPos}/>
 
           {/* Grid para organizar todos os botões */}
           <div className='grid grid-cols-6 gap-2 mt-5 mb-5'>
@@ -135,7 +211,7 @@ function App() {
             <Button value='4' type='gray-buttons' onClick={handleButtonClick}/>
             <Button value='5' type='gray-buttons' onClick={handleButtonClick}/>
             <Button value='6' type='gray-buttons' onClick={handleButtonClick}/>
-            <Button value='x' type='gray-buttons' onClick={handleButtonClick}/>
+            <Button value='×' type='gray-buttons' onClick={handleButtonClick}/>
             <Button value='÷' type='gray-buttons' onClick={handleButtonClick}/>
 
             {/* Linha 9 */}
@@ -153,9 +229,18 @@ function App() {
             <Button value='=' type='gray-buttons' onClick={handleButtonClick}/>
           </div>
         </div>
-        <div className='equation-history bg-white border-b-4 border-r-4 border-b-gray-200  p-5 w-75
+        <div className='equation-history bg-white border-b-4 border-r-4 border-b-gray-200 p-5 w-81
                       border-r-gray-200 rounded-2xl shadow-[-4px_-4px_8px_rgba(0,0,0,0.6)]'>
-          <h2>Equation History</h2>
+          <h2 className='mb-5'>Equation History</h2>
+          <div ref={historyRef} className='rounded-2xl bg-gray-100 overflow-y-auto h-148'>
+            <ul>
+              {eqHistory.map((eq, index) => (
+                <li key={index} className='p-2'>
+                  <span>{eq}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
       </div>
     </main>
